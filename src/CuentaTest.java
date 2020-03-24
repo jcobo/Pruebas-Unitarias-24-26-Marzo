@@ -10,18 +10,22 @@ class CuentaTest {
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
+		// System.out.println("BeforeAll");
 	}
 
 	@AfterAll
 	static void tearDownAfterClass() throws Exception {
+		// System.out.println("AfterAll");
 	}
 
 	@BeforeEach
 	void setUp() throws Exception {
+		// System.out.println("BeforeEach");
 	}
 
 	@AfterEach
 	void tearDown() throws Exception {
+		// System.out.println("AfterEach");
 	}
 
 	@Test

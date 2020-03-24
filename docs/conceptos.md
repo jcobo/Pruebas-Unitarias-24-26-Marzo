@@ -1,6 +1,11 @@
 Conceptos
 =========
 
+Tests de caja blanca
+--------------------
+
+Son aquellos tests que programamos mirando el código fuente. Con este tipo de tests nos ayudamos del propio código fuente para asegurarnos que estamos cubriendo todos los caminos posibles que puede seguir el código: ramificaciones por sentencias if-else, límites/fronteras en los bucles, cóndiciones lógicas...
+
 Tests de caja negra
 -------------------
 
@@ -8,22 +13,36 @@ Son aquellos tests que programamos sin mirar el código fuente del elemento que 
 
 Para programar este tipo de tests nos tienen que decir cuál es el comportamiento esperado del elemento que hay que testear.
 
-Tests de caja blanca
---------------------
-
-Son aquellos tests que programamos mirando el código fuente. Con este tipo de tests nos ayudamos del propio código fuente para asegurarnos que estamos cubriendo todos los caminos posibles que puede seguir el código: ramificaciones por sentencias if-else, límites/fronteras en los bucles, cóndiciones lógicas...
 
 Query function
 --------------
 
 Son funciones cuyo objetivo es conseguir/calcular/procesar información y devolvérnosla en el return.
 
+Ejemplo: 
+
+```java
+User u = UserService.getUser();
+```
 
 Command function
 ----------------
 
 Son funciones cuyo objetivo es ejecutar alguna instrucción que altere el entorno (escribir/modificar en base de datos, enviar un correo, escribir en un fichero, cambiar el estado de un objeto en memoria...
 
+Ejemplo: 
+
+```java
+login(username, password);
+```
+
+Se deberían evitar sin embargo ejemplos como este:
+
+Ejemplo: 
+
+```java
+User u = UserService.login(username, password);
+```
 
 Tests de estado
 ---------------
@@ -35,7 +54,7 @@ Este tipo de testeo se puede realizar tanto con la técnica de caja negra como c
 Tests de implementación
 -----------------------
 
-En este tipo de tests se pretende verficar que el elemento bajo test invoca (o no invoca) algún método concreto con unos argumentos concretos.
+En este tipo de tests se pretende verificar que el elemento bajo test invoca (o no invoca) algún método concreto con unos argumentos concretos.
 
 
 Propiedades de un buen test unitario
@@ -63,6 +82,10 @@ Los tests unitarios deben ser completamente independientes de factores externos 
 - Rápidos
 
 Los tests se programan con la intención de lanzarlos continuamente, una y otra vez. Si los tests son lentos, es muy probable que dejemos de ejecutarlos con frecuencia.
+
+- Independientes
+
+No deben depender del orden de ejecución, ni de si existe o no existe algún otro test.
 
 - Que sean realmente unitarios.
 

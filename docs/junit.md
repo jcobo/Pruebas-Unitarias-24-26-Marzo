@@ -29,20 +29,20 @@ class HelloWorldTest {
 Test Class y Test Methods
 -------------------------
 
-Test Class: any top-level class, static member class, or @Nested class that contains at least one test method.
+**Test Class**: Una clase que contiene al menos un Test Method.
 
-Test classes must not be abstract and must have a single constructor.
+Las *Test Class* no pueden ser abstractas y solamente pueden tener un constructor.
 
-Test Method: any instance method that is directly annotated or meta-annotated with @Test, @RepeatedTest, @ParameterizedTest, @TestFactory, or @TestTemplate.
+**Test Method**: Cualquier método que tenga una de las siguientes anotaciones: @Test, @RepeatedTest, @ParameterizedTest, @TestFactory, or @TestTemplate.
 
-Lifecycle Method: any method that is directly annotated or meta-annotated with @BeforeAll, @AfterAll, @BeforeEach, or @AfterEach.
+**Lifecycle Method**: Cualquier método con una de las siguientes anotaciones @BeforeAll, @AfterAll, @BeforeEach, or @AfterEach.
 
-Test methods and lifecycle methods may be declared locally within the current test class, inherited from superclasses, or inherited from interfaces (see Test Interfaces and Default Methods). In addition, test methods and lifecycle methods must not be abstract and must not return a value.
+Los *test methods* y los *lifecycle methods* no pueden ser abstractos y no pueden devolver ningún valor con return.
 
-Test classes, test methods, and lifecycle methods are not required to be public, but they must not be private.
-The following test class demonstrates the use of @Test methods and all supported lifecycle methods. For further information on runtime semantics, see Test Execution Order and Wrapping Behavior of Callbacks.
+Ni las *Test Class* ni los *Test Method* ni los *Lifecycle Method* pueden ser privados.
 
-A standard test class
+Ejemplo básico con los 3 elementos:
+
 ```java
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -98,11 +98,23 @@ class StandardTests {
 Anotaciones
 -----------
 
+Ya hemos visto las siguientes anotaciones:
+
+- @Test
+- @BeforeAll 
+- @AfterAll
+- @BeforeEach 
+- @AfterEach
+
+Vamos a echar un vistazo a algunas más a lo largo de este tema. La lista completa está publicada en la guía oficial de JUnit.
+
 https://junit.org/junit5/docs/current/user-guide/#writing-tests-annotations
 
+También es posible crear anotaciones personalizadas.
 
-Deshabilitar Tests
-------------------
+
+### Deshabilitar Tests
+
 
 Se puede deshabilitar un test concreto con el decorador @Disabled:
 
@@ -358,8 +370,10 @@ void failsIfExecutionTimeExceeds100Milliseconds() {
 https://junit.org/junit5/docs/current/user-guide/#writing-tests-declarative-timeouts
 
 
-Creación de decoradores
+Creación de anotaciones
 -----------------------
+
+La anotación @interface, permite crear anotaciones 
 
 ```java
 @Target(ElementType.METHOD)
@@ -408,10 +422,32 @@ junit.jupiter.execution.parallel.mode.classes.default = same_thread
 
 Gráfico comparativo al final de esta sección: https://junit.org/junit5/docs/current/user-guide/#writing-tests-parallel-execution
 
-TempDirectory (experimental)
+Temp Directory (experimental)
 ----------------------------
 
+La anotación @TempDir sirve para declarar un path como directorio temporal para la escritura/lectura de ficheros en los tests.
 
+```java
+class SharedTempDirectoryDemo {
+
+    @TempDir
+    static Path sharedTempDir;
+
+    @Test
+    void writeItemsToFile() throws IOException {
+        Path file = sharedTempDir.resolve("test.txt");
+
+        new ListWriter(file).write("a", "b", "c");
+
+        assertEquals(singletonList("a,b,c"), Files.readAllLines(file));
+    }
+
+    @Test
+    void anotherTestThatUsesTheSameTempDir() {
+        // use sharedTempDir
+    }
+}
+```
 
 Diferencias con JUnit v4
 ------------------------
@@ -425,4 +461,25 @@ assertEquals("failure - strings are not equal", expected, actual);
 
 - Aserciones de excepciones
 
+El testeo de excepciones en JUnit 4 se realizaba a través de la anotación @Test
+
+```java
+@Test(expected = NullPointerException.class)
+public void exceptionTesting() {
+    String test = null;
+    test.length();
+}
+```
+
+En JUnit 5 existen assertions para ello:
+
+```java
+@Test
+void exceptionTesting() {
+    assertThrows(NullPointerException.class, () -> {
+    		String test = null;
+    		test.length();
+    });
+}
+```
 

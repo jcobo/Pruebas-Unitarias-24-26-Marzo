@@ -14,18 +14,18 @@ Empezamos a programar un método que nos dice la fase del día en la que estamos
 
 
 ```java
-public static string GetTimeOfDay()
+public static String GetTimeOfDay()
 {
-    DateTime time = DateTime.Now;
-    if (time.Hour >= 0 && time.Hour < 6)
+	LocalDateTime time = LocalDateTime.now();
+    if (time.getHour() >= 0 && time.getHour() < 6)
     {
         return "Night";
     }
-    if (time.Hour >= 6 && time.Hour < 12)
+    if (time.getHour() >= 6 && time.getHour() < 12)
     {
         return "Morning";
     }
-    if (time.Hour >= 12 && time.Hour < 18)
+    if (time.getHour() >= 12 && time.getHour() < 18)
     {
         return "Afternoon";
     }
@@ -73,70 +73,68 @@ Solución 2: Poner un if en el test, que según la hora haga un assert u otro de
 - No testea todos los casos
 - ¿Lanzar los tests varias veces durante un día antes de dar el código por bueno?
 
-Pero el problema no es del test, es del código fuente:
 
-- No cumple el Single Responsability Principle de los principios SOLID
-- No cumple el Dependency Inversion principle de los principios SOLID
--
+Estos problemas de testeabilidad en realidad están causados por la mala calidad del código de la función GetTimeOfDay(). Este método sufre de varias "malas prácticas": 
 
-Turns out that all these testability problems are caused by the low-quality GetTimeOfDay() API. In its current form, this method suffers from several issues:
+- Está acoplado a (depende de) una implementación concreta de la forma de leer la hora del sistema. Es decir, NO cumple el Dependency Inversion principle de los principios SOLID.
+- Hace más de una cosa: 1) Leer la hora del sistema, 2) Interpretar la fase del día según la hora leída. Es decir, NO cumple el Single Responsability Principle de los principios SOLID.
 
-It is tightly coupled to the concrete data source. It is not possible to reuse this method for processing date and time retrieved from other sources, or passed as an argument; the method works only with the date and time of the particular machine that executes the code. Tight coupling is the primary root of most testability problems.
+**Estas dos malas prácticas son la causa principal de la mayoría de problemas de testeabilidad.**
 
+La mayoría de veces, la solución pasa por aplicar la inversión de dependencias. Vamos a quitar la dependencia interna de la función GetTimeOfDay con la implementación LocalDateTime.
 
-
-It lies about the information required to get its job done. Developers must read every line of the actual source code to understand what hidden inputs are used and where they come from. The method signature alone is not enough to understand the method’s behavior.
-
-It is hard to predict and maintain. The behavior of a method that depends on a mutable global state cannot be predicted by merely reading the source code; it is necessary to take into account its current value, along with the whole sequence of events that could have changed it earlier. In a real-world application, trying to unravel all that stuff becomes a real headache.
-
-After reviewing the API, let’s finally fix it! Fortunately, this is much easier than discussing all of its flaws — we just need to break the tightly coupled concerns.
-
-FIXING THE API: INTRODUCING A METHOD ARGUMENT
-The most obvious and easy way of fixing the API is by introducing a method argument:
-
-public static string GetTimeOfDay(DateTime dateTime)
-{    
-    if (dateTime.Hour >= 0 && dateTime.Hour < 6)
+```java
+public static String GetTimeOfDay(LocalDateTime time)
+{
+    if (time.getHour() >= 0 && time.getHour() < 6)
     {
         return "Night";
     }
-    if (dateTime.Hour >= 6 && dateTime.Hour < 12)
+    if (time.getHour() >= 6 && time.getHour() < 12)
     {
         return "Morning";
     }
-    if (dateTime.Hour >= 12 && dateTime.Hour < 18)
+    if (time.getHour() >= 12 && time.getHour() < 18)
     {
-        return "Noon";
+        return "Afternoon";
     }
     return "Evening";
 }
-Now the method requires the caller to provide a DateTime argument, instead of secretly looking for this information by itself. From the unit testing perspective, this is great; the method is now deterministic (i.e., its return value fully depends on the input), so state-based testing is as easy as passing some DateTime value and checking the result:
+```
 
-[TestMethod]
+Ahora el método requiere ser llamado con un objeto LocalDateTime ya instanciado. Eso es genial, porque en el Test podemos pasarle DateTimes concretos elegidos por nosotros mismos:
+
+```java
 public void GetTimeOfDay_For6AM_ReturnsMorning()
 {
     // Arrange phase is empty: testing static method, nothing to initialize
 
     // Act
-    string timeOfDay = GetTimeOfDay(new DateTime(2015, 12, 31, 06, 00, 00));
+    string timeOfDay = GetTimeOfDay(new LocalDateTime(2015, 12, 31, 06, 00, 00));
 
     // Assert
     Assert.AreEqual("Morning", timeOfDay);
 }
-Notice that this simple refactor also solved all the API issues discussed earlier (tight coupling, SRP violation, unclear and hard to understand API) by introducing a clear seam between what data should be processed and how it should be done.
+```
 
-Excellent — the method is testable, but how about its clients? Now it is the caller’s responsibility to provide date and time to the GetTimeOfDay(DateTime dateTime) method, meaning that they could become untestable if we don’t pay enough attention. Let’s have a look how we can deal with that.
+Con esta simple refactorización se resuelven los problemas de testeabilidad debido a las violaciones de los dos principios SOLID antes comentados.
 
-FIXING THE CLIENT API: DEPENDENCY INJECTION
-Say we continue working on the smart home system, and implement the following client of the GetTimeOfDay(DateTime dateTime) method — the aforementioned smart home microcontroller code responsible for turning the light on or off, based on the time of day and the detection of motion:
+Pero con esta técnica parece que lo que hemos hecho es trasladar el problema del acoplamiento con LocalDateTime a una instancia superior, con lo que ahora será ese método que utilizaba GetDateTime() el que será complejo de testear.
 
+ 
+Para arreglar la instancia superior, haremos uso de la **Inyección de dpendencias**.
+
+Pongamos que la instancia superior es algo así:
+
+
+```java
 public class SmartHomeController
 {
-    public DateTime LastMotionTime { get; private set; }
+    public LocalDateTime LastMotionTime { get; private set; }
 
     public void ActuateLights(bool motionDetected)
     {
-        DateTime time = DateTime.Now; // Ouch!
+        LocalDateTime time = LocalDateTime.now(); // ¡¡ MAL !!
 
         // Update the time of last motion.
         if (motionDetected)
@@ -157,28 +155,35 @@ public class SmartHomeController
         }
     }
 }
-Ouch! We have the same kind of hidden DateTime.Now input problem — the only difference is that it is located on a little bit higher of an abstraction level. To solve this issue, we can introduce another argument, again delegating the responsibility of providing a DateTime value to the caller of a new method with signature ActuateLights(bool motionDetected, DateTime dateTime). But, instead of moving the problem a level higher in the call stack once more, let’s employ another technique that will allow us to keep both ActuateLights(bool motionDetected) method and its clients testable: Inversion of Control, or IoC.
+```
 
-Inversion of Control is a simple, but extremely useful, technique for decoupling code, and for unit testing in particular. (After all, keeping things loosely coupled is essential for being able to analyze them independently from each other.) The key point of IoC is to separate decision-making code (when to do something) from action code (what to do when something happens). This technique increases flexibility, makes our code more modular, and reduces coupling between components.
+Tenemos el mismo problema de antes con LocalDateTime.now(), solo que ahora el problema está localizado un poquito más "arriba".
 
-Inversion of Control can be implemented in a number of ways; let’s have a look at one particular example — Dependency Injection using a constructor — and how it can help in building a testable SmartHomeController API.
+Se podría seguir pasando el problema hacía arriba, pero en algún momento no lo podremos hacer más porque no habrá más "arriba". La solución para detener estas dependencias es la **inversión de control**.
 
-First, let’s create an IDateTimeProvider interface, containing a method signature for obtaining some date and time:
+La Inversión de control se puede implementar de muchas formas. En este caso lo haremos con la técnica de **Inyección de dependencias utilizando un constructor**.
 
-public interface IDateTimeProvider
+Vamos a crear una interfaz ILocalDateTimeProvider interface que tenga el siguiente método:
+
+```java
+public interface ILocalDateTimeProvider
 {
-    DateTime GetDateTime();
+    LocalDateTime GetLocalDateTime();
 }
-Then, make SmartHomeController reference an IDateTimeProvider implementation, and delegate it the responsibility of obtaining date and time:
+```
 
+Ahora haremos que nuestro SmartHomeController solicite en su constructor una instancia ILocalDateTimeProvider y delegue la responsabilidad de conseguirla.
+
+
+```java
 public class SmartHomeController
 {
-    private readonly IDateTimeProvider _dateTimeProvider; // Dependency
+    private readonly IDateTimeProvider _localDateTimeProvider; // Dependency
 
-    public SmartHomeController(IDateTimeProvider dateTimeProvider)
+    public SmartHomeController(ILocalDateTimeProvider localDateTimeProvider)
     {
         // Inject required dependency in the constructor.
-        _dateTimeProvider = dateTimeProvider;
+        _localDateTimeProvider = localDateTimeProvider;
     }
 
     public void ActuateLights(bool motionDetected)
@@ -188,27 +193,36 @@ public class SmartHomeController
         // Remaining light control logic goes here...
     }
 }
-Now we can see why Inversion of Control is so called: the control of what mechanism to use for reading date and time was inverted, and now belongs to the client of SmartHomeController, not SmartHomeController itself. Thereby, the execution of the ActuateLights(bool motionDetected) method fully depends on two things that can be easily managed from the outside: the motionDetected argument, and a concrete implementation of IDateTimeProvider, passed into a SmartHomeController constructor.
+```
 
-Why is this significant for unit testing? It means that different IDateTimeProvider implementations can be used in production code and unit test code. In the production environment, some real-life implementation will be injected (e.g., one that reads actual system time). In the unit test, however, we can inject a “fake” implementation that returns a constant or predefined DateTime value suitable for testing the particular scenario.
+Hemos invertido las dependencias. Ahora es el sistema (el FrameWork) el que cuando instancie la clase SmartHomeController nos pasará un objeto que debe cumplir el interfaz ILocalDateTimeProvider. 
 
-A fake implementation of IDateTimeProvider could look like this:
+Todo FrameWork con Inyección de dependencias tiene algún fichero de configuración o similar para que podamos mapear interfaces con Clases concretas. Al FrameWork habría que indicarle que cuando un controlador pida en su constructor un objeto con la interfaz ILocalDateTimeProvider, le debe proporcionar una instacia de java.time.LocalDateTime. 
 
-public class FakeDateTimeProvider : IDateTimeProvider
+ILocalDateTimeProvider => java.time.LocalDateTime.
+
+Al margen de que esta técnica nos ha permitido desacoplar nuestras clases de implementaciones concretas, con las ventajas que eso conlleva, en lo que nos afecta en este curso, es que ahora los tests unitarios son mucho más fáciles de programar, ya que esta técnica nos permite sustituir las implementaciones reales por FAKES controlados por nosotros.
+
+Un Fake de ILocalDateTimeProvider, podría ser así:
+
+```java
+public class FakeLocalDateTimeProvider : ILocalDateTimeProvider
 {
-    public DateTime ReturnValue { get; set; }
+    public LocalDateTime ReturnValue { get; set; }
 
-    public DateTime GetDateTime() { return ReturnValue; }
+    public LocalDateTime GetDateTime() { return ReturnValue; }
 
     public FakeDateTimeProvider(DateTime returnValue) { ReturnValue = returnValue; }
 }
-With the help of this class, it is possible to isolate SmartHomeController from non-deterministic factors and perform a state-based unit test. Let’s verify that, if motion was detected, the time of that motion is recorded in the LastMotionTime property:
+```
 
-[TestMethod]
+Podemos testear, por ejemplo, si el método ActuateLights se apunta bien el valor en LastMotionTime.
+
+```java
 void ActuateLights_MotionDetected_SavesTimeOfMotion()
 {
     // Arrange
-    var controller = new SmartHomeController(new FakeDateTimeProvider(new DateTime(2015, 12, 31, 23, 59, 59)));
+    var controller = new SmartHomeController(new FakeDateTimeProvider(new LocalDateTime(2015, 12, 31, 23, 59, 59)));
 
     // Act
     controller.ActuateLights(true);
@@ -216,13 +230,19 @@ void ActuateLights_MotionDetected_SavesTimeOfMotion()
     // Assert
     Assert.AreEqual(new DateTime(2015, 12, 31, 23, 59, 59), controller.LastMotionTime);
 }
-Great! A test like this was not possible before refactoring. Now that we’ve eliminated non-deterministic factors and verified the state-based scenario, do you think SmartHomeController is fully testable?
+```
 
-Poisoning the Codebase with Side Effects
+Comprobar esto era imposible antes de la refactorización. Hemos eliminado FACTORES NO DETERMINÍSTICOS.
+
+
+Envenenar el código con efectos colaterales/secundarios
+-------------------------------------------------------
+
 Despite the fact that we solved the problems caused by the non-deterministic hidden input, and we were able to test certain functionality, the code (or, at least, some of it) is still untestable!
 
 Let’s review the following part of the ActuateLights(bool motionDetected) method responsible for turning the light on or off:
 
+```java
 // If motion was detected in the evening or at night, turn the light on.
 if (motionDetected && (timeOfDay == "Evening" || timeOfDay == "Night"))
 {
@@ -233,6 +253,8 @@ else if (time.Subtract(LastMotionTime) > TimeSpan.FromMinutes(1) || (timeOfDay =
 {
     BackyardLightSwitcher.Instance.TurnOff();
 }
+```
+
 As we can see, SmartHomeController delegates the responsibility of turning the light on or off to a BackyardLightSwitcher object, which implements a Singleton pattern. What’s wrong with this design?
 
 To fully unit test the ActuateLights(bool motionDetected) method, we should perform interaction-based testing in addition to the state-based testing; that is, we should ensure that methods for turning the light on or off are called if, and only if, appropriate conditions are met. Unfortunately, the current design does not allow us to do that: the TurnOn() and TurnOff() methods of BackyardLightSwitcher trigger some state changes in the system, or, in other words, produce side effects. The only way to verify that these methods were called is to check whether their corresponding side effects actually happened or not, which could be painful.
@@ -256,6 +278,7 @@ The solution of both testability and low-quality API issues is, not surprisingly
 FIXING THE API: HIGHER-ORDER FUNCTIONS
 This approach is an option in any object-oriented language that supports first-class functions. Let’s take advantage of C#’s functional features and make the ActuateLights(bool motionDetected) method accept two more arguments: a pair of Action delegates, pointing to methods that should be called to turn the light on and off. This solution will convert the method into a higher-order function:
 
+```java
 public void ActuateLights(bool motionDetected, Action turnOn, Action turnOff)
 {
     DateTime time = _dateTimeProvider.GetDateTime();
@@ -278,11 +301,13 @@ public void ActuateLights(bool motionDetected, Action turnOn, Action turnOff)
         turnOff(); // Invoking a delegate: no tight coupling anymore
     }
 }
+```
+
 This is a more functional-flavored solution than the classic object-oriented Dependency Injection approach we’ve seen before; however, it lets us achieve the same result with less code, and more expressiveness, than Dependency Injection. It is no longer necessary to implement a class that conforms to an interface in order to supply SmartHomeController with the required functionality; instead, we can just pass a function definition. Higher-order functions can be thought of as another way of implementing Inversion of Control.
 
 Now, to perform an interaction-based unit test of the resulting method, we can pass easily verifiable fake actions into it:
 
-[TestMethod]
+```java
 public void ActuateLights_MotionDetectedAtNight_TurnsOnTheLight()
 {
     // Arrange: create a pair of actions that change boolean variable instead of really turning the light on or off.
@@ -297,6 +322,8 @@ public void ActuateLights_MotionDetectedAtNight_TurnsOnTheLight()
     // Assert
     Assert.IsTrue(turnedOn);
 }
+```
+
 Finally, we have made the SmartHomeController API fully testable, and we are able to perform both state-based and interaction-based unit tests for it. Again, notice that in addition to improved testability, introducing a seam between the decision-making and action code helped to solve the tight coupling problem, and led to a cleaner, reusable API.
 
 Now, in order to achieve full unit test coverage, we can simply implement a bunch of similar-looking tests to validate all possible cases — not a big deal since unit tests are now quite easy to implement.
@@ -313,6 +340,8 @@ unit testing example: illustration
 However, impurity is inevitable; any real-life application must, at some point, read and manipulate state by interacting with the environment, databases, configuration files, web services, or other external systems. So instead of aiming to eliminate impurity altogether, it’s a good idea to limit these factors, avoid letting them poison your codebase, and break hard-coded dependencies as much as possible, in order to be able to analyze and unit test things independently.
 
 Common Warning Signs of Hard to Test Code
+-----------------------------------------
+
 Trouble writing tests? The problem's not in your test suite. It's in your code.
 
 Finally, let’s review some common warning signs indicating that our code might be difficult to test.
@@ -333,6 +362,7 @@ Essentially, the Singleton pattern is just another form of the global state. Sin
 
 Singletons can easily make unit tests order-dependent because they carry state around for the lifetime of the whole application or unit test suite. Have a look at the following example:
 
+```java
 User GetUser(int userId)
 {
     User user;
@@ -347,15 +377,19 @@ User GetUser(int userId)
     }
     return user;
 }
+```
+
 In the example above, if a test for the cache-hit scenario runs first, it will add a new user to the cache, so a subsequent test of the cache-miss scenario may fail because it assumes that the cache is empty. To overcome this, we’ll have to write additional teardown code to clean the UserCache after each unit test run.
 
 Using Singletons is a bad practice that can (and should) be avoided in most cases; however, it is important to distinguish between Singleton as a design pattern, and a single instance of an object. In the latter case, the responsibility of creating and maintaining a single instance lies with the application itself. Typically, this is handed with a factory or Dependency Injection container, which creates a single instance somewhere near the “top” of the application (i.e., closer to an application entry point) and then passes it to every object that needs it. This approach is absolutely correct, from both testability and API quality perspectives.
 
-The new Operator
+El operador new
+---------------
 Newing up an instance of an object in order to get some job done introduces the same problem as the Singleton anti-pattern: unclear APIs with hidden dependencies, tight coupling, and poor testability.
 
 For example, in order to test whether the following loop stops when a 404 status code is returned, the developer should set up a test web server:
 
+```java
 using (var client = new HttpClient())
 {
     HttpResponseMessage response;
@@ -365,11 +399,14 @@ using (var client = new HttpClient())
         // Process the response and update the uri...
     } while (response.StatusCode != HttpStatusCode.NotFound);
 }
+```
+
 However, sometimes new is absolutely harmless: for example, it is OK to create simple entity objects:
 
 var person = new Person("John", "Doe", new DateTime(1970, 12, 31));
 It is also OK to create a small, temporary object that does not produce any side effects, except to modify their own state, and then return the result based on that state. In the following example, we don’t care whether Stack methods were called or not — we just check if the end result is correct:
 
+```java
 string ReverseString(string input)
 {
     // No need to do interaction-based testing and check that Stack methods were called or not;
@@ -386,11 +423,16 @@ string ReverseString(string input)
     }
     return result;
 }
+```
+
 Static Methods
+--------------
+
 Static methods are another potential source of non-deterministic or side-effecting behavior. They can easily introduce tight coupling and make our code untestable.
 
 For example, to verify the behavior of the following method, unit tests must manipulate environment variables and read the console output stream to ensure that the appropriate data was printed:
 
+```java
 void CheckPathEnvironmentVariable()
 {
 
@@ -405,6 +447,8 @@ void CheckPathEnvironmentVariable()
     }
 
 }
+```
+
 However, pure static functions are OK: any combination of them will still be a pure function. For example:
 
 double Hypotenuse(double side1, double side2) { return Math.Sqrt(Math.Pow(side1, 2) + Math.Pow(side2, 2)); }

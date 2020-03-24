@@ -37,7 +37,7 @@ Resto -> Letra
 22 -> E
 
 
-A) Programar la clase. Comprobar ("manualmente") que funciona bien.
+A) Programar la clase (no copiar de internet). Comprobar ("manualmente") que funciona bien.
 
 - ¿La subiríais a producción?
 - ¿Cuantos dnis comprobaríais antes de subirlo a producción?
@@ -50,6 +50,30 @@ B) Testear la clase
 - ¿Volvéis a testear de forma manual de forma concienzuda tras un tiempo desarrollando o cambiando funcionalidades? ¿Alguna vez se os ha "roto algo en otro sitio" al cambiar cosas en un sitio que aparentemente nada tiene que ver?
 
  
+## ISBN Checksum calculator
+
+/******************************************************************************
+ * 
+ *  Determines the check digit of an ISBN-10 number given the first 9 digits.
+ *
+ *  An ISBN-10 number is valid if it consists of 10 digits and
+ *  d_1 + 2*d_2 + 3*d_3 + ... + 10*d_10 is a multiple of 11.
+ *  For example, 0-201-31452-5 is valid since
+ *  1*5 + 2*2 + 3*5 + 4*4 + 5*1 + 6*3 + 7*1 + 8*0 + 9*2 + 10*0 = 88
+ *  and 88 is a multiple of 11.
+ *
+ *  % java ISBN 013407642
+ *  The full ISBN number is 0134076427
+ *
+ *  % java ISBN 067233784
+ *  The full ISBN number is 0672337843
+ *
+ *  % java ISBN 032157351
+ *  The full ISBN number is 032157351X
+ *
+ ******************************************************************************/
+
+Si la función ya estuviera programada... ¿cuántos tests serían necesarios?
 
 ## Shopping Cart
 
