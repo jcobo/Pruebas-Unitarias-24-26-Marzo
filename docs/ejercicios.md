@@ -4,13 +4,16 @@
 
 Crear una clase DNI con un método calcularLetra. Este DNI recibe como argumento un número (el número de dni) y devuelve un string (la letra correspondiente a dicho número).
 
+```java
 public char calcularLetra(int dni)
+```
 
 El algoritmo para calcular la letra es el siguiente:
 
 1) Se divide el número entre 23
 2) El resto de la división sirve para identificar la letra según la siguiente tabla:
 
+```
 Resto -> Letra
 0 -> T
 1 -> R
@@ -35,7 +38,7 @@ Resto -> Letra
 20 -> C
 21 -> K
 22 -> E
-
+```
 
 A) Programar la clase (no copiar de internet). Comprobar ("manualmente") que funciona bien.
 
