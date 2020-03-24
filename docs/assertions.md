@@ -1,9 +1,9 @@
 # Assertions
 
-## Lista completa de Assertions 
+## Lista completa de Assertions 
 
 
-### Comprobaciones básicas
+### Comprobaciones básicas
 
 
 - assertEquals
@@ -69,7 +69,7 @@ NOTA: Si el método bajo prueba lanza una excepción no capturada, el test se co
 Testea que todos los ejectubales proporcionados NO lanzan excepciones
 
 
-### Comprobaciones temporales
+### Comprobaciones temporales
 
 - assertTimeout
 
@@ -89,7 +89,7 @@ Hace fallar un test.
 
 
 
-## Más sobre assertions
+## Más sobre assertions
 
 ### Mensajes en caso de fallo
 
