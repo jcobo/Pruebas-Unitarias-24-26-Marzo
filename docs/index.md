@@ -1,24 +1,38 @@
 Pruebas Unitarias
 =================
 
-1. Introducción
+- Introducción
 
-2. JUnit
+    - [Definiciones](./intro.md)
+    - [Conceptos](./conceptos.md)
+    - [Anatomía de un test unitario](./anatomia.md)
 
-3. Normativa de Test usada
+- JUnit
+	
+	- [JUnit v5](./junit.md)
+	- [Assertions](./assertions.md)
+	
+	
+- [Malas Prácticas](./malas-practicas.md)
 
-4. Mocks
+- [Buenas Prácticas](./buenas-practicas.md)
 
-- Tipos de Mocks
+- Mocks
 
-- Frameworks de Mocks
+	- [Tipos de Mocks](./dobles.md)
 
-5. Calidad de Test
+	- Frameworks de Mocks
 
-- Cobertura
+- Calidad de Test
 
-- Mutación Test
+	- Cobertura
 
-6. Desarrollo Dirigido por Tests (TDD)
+	- Mutación Test
 
-- El Algoritmo TDD
+- Desarrollo Dirigido por Tests (TDD)
+
+	- El Algoritmo TDD
+
+- Normativa de Test usada
+
+- [Ejercicios](./ejercicios.md)
