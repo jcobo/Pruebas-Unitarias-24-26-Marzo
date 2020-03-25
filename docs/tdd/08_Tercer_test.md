@@ -6,17 +6,14 @@ El siguiente ejemplo de la lista ATDD es:
 
 Convertimos el ejemplo en un test:
 
-``` [php]
-
-
-    public function testAlIngresar100EnCuentaVaciaElSaldoEs100()
+```java
+	@Test
+    public void testAlIngresar3000EnCuentaVaciaElSaldoEs3000()
     {
-        $c = new Cuenta();
-        $c->ingreso(3000);
-        $this->assertEquals(3000, $c->getSaldo());
+        Cuenta c = new Cuenta();
+        c.ingreso(3000);
+        assertEquals(3000, c.getSaldo());
     }
-
-
 ```
 
 A primera vista, es lo mismo que el test anterior, pero con otra cantidad, parece 
@@ -32,28 +29,23 @@ Volviendo al tema, tenemos un método getSaldo() que devuelve 100 cuando al mét
 le pasamos 100 como parámetro y devuelve 3000 cuando al método ingreso le pasamos 3000
 como parámetro. Y devuelve 0 si NO se llama al método ingreso(). Pues esta clarísimo.
 
-``` [php]
-src/Cuenta.php
+```java
+public class Cuenta {
 
-<?php
+    private int saldo;
 
-class Cuenta {
-
-    private $saldo;
-
-    public function __construct() {
-        $this->saldo = 0;
+	public Cuenta() {
+		this.saldo = 0;
+	}
+    
+    public int getSaldo() {
+        return this.saldo;
     }
-
-    public function getSaldo() {
-        return $this->saldo;
-    }
-
-    public function ingreso($cantidad){
-        $this->saldo = $cantidad;
+    
+    public void ingreso(int cantidad){
+        this.saldo = cantidad;
     }
 }
-
 ```
 
 Ejecutamos los tests, y pasan. Somos conscientes de que está mucho mejor que hace un test,

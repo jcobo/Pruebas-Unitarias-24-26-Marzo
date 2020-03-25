@@ -12,52 +12,19 @@ volvamos a ejecutar el test y veamos lo que dice:
 > Fatal error: Class 'Cuenta' not found
 
 El test necesita que exista una clase Cuenta, así que vamos a crearla. Ahora toca 
-pensar dónde crear esa clase. Si usamos algún framework de desarrollo (symfony, 
-laravel...) pues ya nos viene definida la estructura del proyecto y dónde va cada 
+pensar dónde crear esa clase. Si usamos algún framework de desarrollo (Spring, 
+Struts...) pues ya nos viene definida la estructura del proyecto y dónde va cada 
 archivo. Como yo no estoy utilizando ningún framework de desarrollo, tendré que 
 tomar ahora una decisión de estructura de archivos, al menos para ubicar la clase 
 Cuenta.
 
-Crearé por ejemplo un directorio *src* y podré ahí un archivo *Cuenta.php* con 
-la clase *Cuenta*.
 
-
-
-
-``` [php]
-src/Cuenta.php
-
-<?php
-
-class Cuenta {
+```java
+public class Cuenta {
 
 }
-
 ```
 
-
-Y la importo (require) en mi test:
-
-
-``` [php]
-test/EjemploTDDTest.php
-
-<?php
-use PHPUnit\Framework\TestCase;
-require_once 'src/Cuenta.php';
-
-class EjemploTDDTest extends TestCase
-{
-
-    public function testAlCrearCuentaElSaldoEsCero()
-    {
-        $c = new Cuenta();
-        $this->assertEquals(0, $c->getSaldo());
-    }
-
-}
-
-```
 
 Volvemos a ejecutar el test:
 
@@ -65,18 +32,13 @@ Volvemos a ejecutar el test:
 
 Ahora el test nos dice que falta un método getSaldo() en la clase Cuenta. Manos a la obra.
 
-``` [php]
-src/Cuenta.php
-
-<?php
-
-class Cuenta {
+```java
+public class Cuenta {
 
     public function getSaldo() {
         
     }
 }
-
 ```
 
 Ejecutemos ahora el test:
@@ -86,18 +48,13 @@ Ejecutemos ahora el test:
 Arreglemoslo, no con un código super completo, y super funcional, sino, recordemos, 
 con **el mínimo código necesario para que el test pase**.
 
-``` [php]
-src/Cuenta.php
-
-<?php
-
-class Cuenta {
+```java
+public class Cuenta {
 
     public function getSaldo() {
         return 0;
     }
 }
-
 ```
 
 Volvemos a ejecutar el test...

@@ -12,20 +12,32 @@ Seguimos
 
 Tests
 
-``` [php]
-
-    public function testIngresoCantidad2Decimales(){
-        $c = new Cuenta();
-        $c->ingreso(100.45);
-        $this->assertEquals(100.45, $c->getSaldo());
+```java
+	@Test
+    public void testIngresoCantidad2Decimales(){
+        Cuenta c = new Cuenta();
+        c.ingreso(100.45);
+        assertEquals(100.45, c.getSaldo());
     }
-
 ```
 
-Ejecuto el test y... no falla. El paso 1 de TDD dice que tengo que escribir un test que falle.
+Este test nos obliga a cambiar los datos a tipo double. O quizás a sobrecargar el método *ingreso* para que acepte ambos tipos, pero "ley del mínimo esfuerzo": si cambiando a double, los tests pasan, pues listo.
 
-¿Es que este test NO aporta funcionalidad nueva? Sí la aporta, pero es culpa de PHP que 
-no hace distinción entre enteros y decimales. La mayoría de lenguajes obligaría con 
-este test a ir al código y cambiar el tipo de dato de *private $saldo;* de *int* a *float*.
+```java
+public class Cuenta {
 
-Sabiendo el por qué, dejamos el test, nos saltamos el paso 2 y 3 y continuamos con el siguiente test
+    private double saldo;
+
+	public Cuenta() {
+		this.saldo = 0;
+	}
+    
+    public double getSaldo() {
+        return this.saldo;
+    }
+    
+    public void ingreso(double cantidad){
+        this.saldo += cantidad;
+    }
+}
+```

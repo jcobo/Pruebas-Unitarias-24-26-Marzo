@@ -24,7 +24,7 @@ void test() {
     when(fakeTime.getHour()).thenReturn(23);
 
     String output = TimeUtils.GetTimeOfDay(fakeTime);
-    assertEquals("Night", output);
+    assertEquals("Evening", output);
 }
 ```
 

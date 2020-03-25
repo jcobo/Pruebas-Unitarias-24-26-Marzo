@@ -13,25 +13,18 @@ chip, las cosas fluyen, e incluso "engancha".
 Hay que testear que al crear una cuenta, el saldo es 0. Adelante, escribe un test 
 que cree una cuenta y haga un assert para comprobar que el saldo es 0.
 
-Lo primero es ponerle nombre al test. En PhpUnit cada test es un método de una clase que extiende a *TestCase*.
-La clase debe tener el sufijo "Test" y el método debe tener el prefijo "test". Los nombres de los tests deben ser lo 
-más descriptivos posibles, así que al test lo llamaré *testAlCrearCuentaElSaldoEsCero* 
-y a la clase la llamaré *EjemploTDDTest*
+Lo primero es crear una Test Class en algún archivo. Dentro crearé una TestClass y dentro un TestMethod, por ejemplo: *Ejemplo* y *alCrearCuentaElSaldoEsCero*.
 
-Necesito también crear un archivo en el que escribir el test. Crearé el archivo EjemploTDDTest.php 
-dentro de un directorio llamado test.
+Necesito también crear un archivo en el que escribir el test. Crearé el archivo EjemploTDDTest.java, y tendré que decidir el paquete en el que va, etc 
 
-``` [php]
 
-    public function testAlCrearCuentaElSaldoEsCero()
-    {
-        
-    }
-
- ```
-
-Hasta el momento solamente he aplicado TDD en el nombre del test, que debe ser muy descriptivo,
-todo lo demás forma parte de la elaboración de tests con PhpUnit sea TDD o sea con cualquier otra técnica.
+```java
+@Test
+public function alCrearCuentaElSaldoEsCero()
+{
+    
+}
+```
 
 Escribamos ahora el test. Según la especificación, el test debe:
 
@@ -46,21 +39,20 @@ documento de diseño, las decisiones de diseño se toman "al vuelo", mientras es
 como no hay nada diseñado, tienes libertad total para hacer un diseño a tu gusto. ¿Cómo te gustaría 
 que fuera el código para crear una cuenta? Yo lo tengo claro: *new Cuenta()*. Así que procedo:
 
-``` [php]
-
-    public function testAlCrearCuentaElSaldoEsCero()
-    {
-        $c = new Cuenta();
-    }
-
- ```
+```java
+@Test
+public function alCrearCuentaElSaldoEsCero()
+{
+    Cuenta c = new Cuenta();
+}
+```
 
 Acabo de tomar varias decisiones de diseño: Que existe una clase llamada *Cuenta*
 y que tiene un constructor que no recibe parámetros.
 
 Quizás otro desarrollador hubiera escrito *new Account()* y otro o *new Cuenta(0)*. 
-Alguno incluso algún *$c = GestorCuentas::crearCuenta()*. Cada uno según su estilo.
-Yo he optado, y ese es el espíritu de TDD, en escribir lo mínimo necesrio. Como 
+Alguno incluso algún *c = GestorCuentas.crearCuenta()*. Cada uno según su estilo.
+Yo he optado, y ese es el espíritu de TDD, en escribir lo mínimo necesario. Como 
 por el momento no necesito un gestor de cuentas ni necesito pasar el saldo al constructor
 para que mi test haga su trabajo, pues no lo hago.
 
@@ -68,15 +60,14 @@ Ahora me queda el segundo paso: *comprobar que el saldo de la cuenta es 0*. Voy
 a necesitar algo que todavía no existe. Un mecanismo para conocer el saldo de la 
 cuenta. Voy a optar por un getter típico.
 
-``` [php]
-
-    public function testAlCrearCuentaElSaldoEsCero()
-    {
-        $c = new Cuenta();
-        $this->assertSame(0, $c->getSaldo());
-    }
-
- ```
+```java
+@Test
+public function alCrearCuentaElSaldoEsCero()
+{
+    Cuenta c = new Cuenta();
+    assertEqual(0, $c->getSaldo());
+}
+```
 
 Así pues, he tomado otra decisión: que la clase tenga un método getSaldo(). 
 Escribiendo primero los tests, mi código está orientado a ser fácilmente utilizado.

@@ -55,9 +55,7 @@ primera cuenta el saldo se quedará en 3500 y en la segunda se quedará en 50.**
 Empezaremos con la primera funcionalidad, con el primer test de la misma:
 *Al crear cuenta el saldo es cero*
 
-Yo utilizaré PHP y el framework PhpUnit. Pero podéis hacer el ejercicio con cualquier otro lenguaje y framework.
 
-Adelante, escribid el primer test antes de pasar al siguiente vídeo.
 
 
 

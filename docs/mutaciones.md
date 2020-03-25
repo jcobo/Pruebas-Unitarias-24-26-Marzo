@@ -25,7 +25,7 @@ Aquí podemos ver el tipo de reportes que sacan las herramietnas de tests de mut
 
 ![Reporte Pit Test](./images/pitest.png "Reporte Pit Test")
 
-![Reporte Pit Test](./images/pitest.png "Reporte Pit Test")
+![Reporte Pit Test](./images/pitest2.png "Reporte Pit Test")
 
 
 Imágenes obtenidas de: https://www.paradigmadigital.com/dev/test-mutaciones/

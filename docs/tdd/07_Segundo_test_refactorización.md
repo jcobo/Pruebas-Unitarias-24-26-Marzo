@@ -3,55 +3,46 @@ En este caso no vemos nada que refactorizar ni en el código ni en los tests.
 Los tests:
 
 
-``` [php]
-test/CuentaTest.php
+```java
+class CuentaTest {
 
-<?php
-use PHPUnit\Framework\TestCase;
-require_once 'src/Cuenta.php';
-
-class CuentaTest extends TestCase
-{
-
-    public function testAlCrearCuentaElSaldoEsCero()
+	@Test
+	public void testAlCrearCuentaElSaldoEsCero()
     {
-        $c = new Cuenta();
-        $this->assertEquals(0, $c->getSaldo());
+        Cuenta c = new Cuenta();
+        assertEquals(0, c.getSaldo());
     }
-
-    public function testAlIngresar100EnCuentaVaciaElSaldoEs100()
+    
+	@Test
+    public void testAlIngresar100EnCuentaVaciaElSaldoEs100()
     {
-        $c = new Cuenta();
-        $c->ingreso(100);
-        $this->assertEquals(100, $c->getSaldo());
+        Cuenta c = new Cuenta();
+        c.ingreso(100);
+        assertEquals(100, c.getSaldo());
     }
-
-}
-
 ```
 
 
 
 El código:
 
-``` [php]
-src/Cuenta.php
+```java
+public class Cuenta {
 
-<?php
+    private int saldo;
 
-class Cuenta {
-
-    private $saldo;
-
-    public function getSaldo() {
-        return $this->saldo;
+	public Cuenta() {
+		this.saldo = 0;
+	}
+    
+    public int getSaldo() {
+        return this.saldo;
     }
-
-    public function ingreso($cantidad){
-        $this->saldo = 100;
+    
+    public void ingreso(int cantidad){
+        this.saldo = 100;
     }
 }
-
 ```
 
 

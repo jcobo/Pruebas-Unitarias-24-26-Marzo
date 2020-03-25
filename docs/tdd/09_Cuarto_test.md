@@ -20,18 +20,15 @@ Varias opciones:
 Yo no me quiero complicar si no hay tests que me lo exijan. Así que me quedo con el 
 método ingreso().
 
-``` [php]
-
-
-    public function testAlIngresar3000EnCuentaCon100ElSaldoEs3100()
+```java
+	@Test
+    public void testAlIngresar3000EnCuentaCon100ElSaldoEs3100()
     {
-        $c = new Cuenta();
-        $c->ingreso(100);
-        $c->ingreso(3000);
-        $this->assertEquals(3100, $c->getSaldo());
+        Cuenta c = new Cuenta();
+        c.ingreso(100);
+        c.ingreso(3000);
+        assertEquals(3100, c.getSaldo());
     }
-
-
 ```
 
 Ejecutamos los test. Falla este último, perfecto. Paso 1 terminado.
@@ -39,29 +36,23 @@ Ejecutamos los test. Falla este último, perfecto. Paso 1 terminado.
 Paso 2: Escribimos código para que no falle el test.
 
 
+```java
+public class Cuenta {
 
-``` [php]
-src/Cuenta.php
+    private int saldo;
 
-<?php
-
-class Cuenta {
-
-    private $saldo;
-
-    public function __construct() {
-        $this->saldo = 0;
+	public Cuenta() {
+		this.saldo = 0;
+	}
+    
+    public int getSaldo() {
+        return this.saldo;
     }
-
-    public function getSaldo() {
-        return $this->saldo;
-    }
-
-    public function ingreso($cantidad){
-        $this->saldo += $cantidad;
+    
+    public void ingreso(int cantidad){
+        this.saldo += cantidad;
     }
 }
-
 ```
 
 Ejecutamos los tests, y pasan. 

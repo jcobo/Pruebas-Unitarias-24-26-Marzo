@@ -29,20 +29,20 @@ Hemos vuelto a hacer ATDD y ya tenemos un ejemplo concreto para convertirlo en u
 
 TDD - Paso 1. Escribimos un test que falle.
 
-``` [php]
-
-    public function testIngresoMasDe6000NoEsValidoAlIngresar7000EnCuentaCon2350ElSaldoSeQuedaEn2350(){
-        //Arrange
-        $c = new Cuenta();
-        $c->ingreso(2350);
+```java
+	@Test
+    public void testAlIngresar7000EnCuentaCon2350ElSaldoEs2350()
+    {
+    		//Set up
+        Cuenta c = new Cuenta();
+        c.ingreso(2350);
         
         //Act
-        $c->ingreso(7000);
-
-        //Asert
-        $this->assertEquals(2350, $c->getSaldo());
+        c.ingreso(7000);
+        
+        //Assert
+        assertEquals(2350, c.getSaldo());
     }
-
 ```
 
 Ejecutamos. El test falla. Precisamente ocurre lo que el usuario ha reportado que ocurre:
@@ -55,19 +55,13 @@ ni que utilizar la aplicación para comprobarlo!
 TDD - Paso 2. Hacer que el test Pase.
 
 
-``` [php]
-src/Cuenta.php
-
-    
-    public function ingreso($cantidad){
-        $esValida = $this->validarCantidadIngresada($cantidad);
-        if($esValida){ 
-            $this->saldo += $cantidad;
+```java
+	public void ingreso(double cantidad){
+        boolean esValida = this.validarCantidadIngresada(cantidad);
+        if(esValida){ 
+            this.saldo += cantidad;
         }
     }
-
-}
-
 ```
 
 Ejecutamos. ¡¡¡Pasa todos los tests!!!

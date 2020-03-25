@@ -36,7 +36,6 @@ Pruebas Unitarias
     - [ATDD](./tdd_ATDD.md)
     - [Enunciado](./tdd_ejercicio_enunciado.md)
     - [Resolución ATDD](./tdd_ejercicio_resolucion.md)
-    - [Ejemplo](./tdd_algoritmo.md)
     - Ejemplo práctico de desarrollo de una aplicación con TDD
         - [Enunciado](./tdd/01_Enunciado.md)
         - [Primer test: introducción](./tdd/02_Primer_test_intro.md)

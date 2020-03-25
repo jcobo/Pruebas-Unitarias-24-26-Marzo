@@ -32,6 +32,6 @@ public void GetMinimum_UnsortedIntegerArray_ReturnsSmallestValue()
 
   integer minimum = Statistics.GetMinimum(unsortedArray); // Act
 
-  Assert.AreEqual(2, minimum); // Assert
+  AssertEqual(2, minimum); // Assert
 }
 ```

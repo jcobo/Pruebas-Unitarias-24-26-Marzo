@@ -47,7 +47,7 @@ primera cuenta el saldo se quedará en 500 y en la segunda se quedará en 3050.*
         - **Al hacer una transferencia de 3000.01 desde una cuenta con 3500 a una con 50, en la 
 primera cuenta el saldo se quedará en 3500 y en la segunda se quedará en 50.**
 
-##Escribiendo el test
+## Escribiendo el test
 
 Vemos que hemos no quedan más tests de la primera funcionalidad: *creación de una cuenta*, 
 Así que pasamos a la segunda (*Funcionalidad de ingreso*) y cogemos el primer ejemplo: 
@@ -55,17 +55,14 @@ Así que pasamos a la segunda (*Funcionalidad de ingreso*) y cogemos el primer e
 
 Convertimos el ejemplo en un test:
 
-``` [php]
-
-
-    public function testAlIngresar100EnCuentaVaciaElSaldoEs100()
+```java
+	@Test
+    public void testAlIngresar3000EnCuentaCon100ElSaldoEs3100()
     {
-        $c = new Cuenta();
-        $c->ingreso(100);
-        $this->assertEquals(100, $c->getSaldo());
+        Cuenta c = new Cuenta();
+        c.ingreso(100);
+        assertEquals(100, c.getSaldo());
     }
-
-
 ```
 
 He tenido que tomar otra decisión de diseño. Los ingresos se harán mediante un método
@@ -96,21 +93,18 @@ Sea como sea, el fallo es nuestro y debemos identificarlo para proseguir correct
 Como en nuestro caso el test falla, pasamos al segundo paso del algoritmo. Escribir el código para que el test pase.
 
 
-##Escribiendo el código
+## Escribiendo el código
 
 Tenemos este test
 
-``` [php]
-
-
-    public function testAlIngresar100EnCuentaVaciaElSaldoEs100()
+```java
+	@Test
+    public void testAlIngresar3000EnCuentaCon100ElSaldoEs3100()
     {
-        $c = new Cuenta();
-        $c->ingreso(100);
-        $this->assertEquals(100, $c->getSaldo());
+        Cuenta c = new Cuenta();
+        c.ingreso(100);
+        assertEquals(100, c.getSaldo());
     }
-
-
 ```
 
 Con este fallo
@@ -123,22 +117,17 @@ Escribamos el mínimo código necesario para que el test pase, sin romper los an
 Creo un método ingreso con un parámetro, porque me lo pide el test. Y siendo muy 
 descuidado y muy torpe, hago que getSaldo devuelva 100 para que mi test pase
 
-``` [php]
-src/Cuenta.php
+```java
+public class Cuenta {
 
-<?php
-
-class Cuenta {
-
-    public function getSaldo() {
+    public int getSaldo() {
         return 100;
     }
-
-    public function ingreso($cantidad){
+    
+    public void ingreso(double cantidad){
         
     }
 }
-
 ```
 
 
@@ -158,28 +147,23 @@ ingreso() devuelve otra. Así que necesito algún tipo de "memoria/indicador" en
 clase, como un atributo.
 
 
-``` [php]
-src/Cuenta.php
+```java
+public class Cuenta {
 
-<?php
+    private int saldo;
 
-class Cuenta {
-
-    private $saldo;
-
-    public function __construct() {
-        $this->saldo = 0;
+	public Cuenta() {
+		this.saldo = 0;
+	}
+    
+    public int getSaldo() {
+        return this.saldo;
     }
-
-    public function getSaldo() {
-        return $this->saldo;
-    }
-
-    public function ingreso($cantidad){
-        $this->saldo = 100;
+    
+    public void ingreso(int cantidad){
+        this.saldo = 100;
     }
 }
-
 ```
 
 El método getSaldo() ya es exactamente como hubieramos programado desde el principio, 
