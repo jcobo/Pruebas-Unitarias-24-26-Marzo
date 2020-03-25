@@ -178,19 +178,19 @@ Ahora haremos que nuestro SmartHomeController solicite en su constructor una ins
 ```java
 public class SmartHomeController
 {
-    private readonly IDateTimeProvider _localDateTimeProvider; // Dependency
+    private IDateTimeProvider localDateTimeProvider; // Dependency
 
     public SmartHomeController(ILocalDateTimeProvider localDateTimeProvider)
     {
         // Inject required dependency in the constructor.
-        _localDateTimeProvider = localDateTimeProvider;
+        this.localDateTimeProvider = localDateTimeProvider;
     }
 
     public void ActuateLights(bool motionDetected)
     {
-        DateTime time = _dateTimeProvider.GetDateTime(); // Delegating the responsibility
+        LocalDateTime time = this.localDateTimeProvider.GetDateTime(); // Delegating the responsibility
 
-        // Remaining light control logic goes here...
+        // Resto del código
     }
 }
 ```
@@ -238,9 +238,12 @@ Comprobar esto era imposible antes de la refactorización. Hemos eliminado FACTO
 Envenenar el código con efectos colaterales/secundarios
 -------------------------------------------------------
 
-Despite the fact that we solved the problems caused by the non-deterministic hidden input, and we were able to test certain functionality, the code (or, at least, some of it) is still untestable!
+Hemos solucionado el problema para testear la hora del día con inyección de dependencias, pero nos queda otro problema con los métodos que encienden y apagan las luces que hacen difícil testear el controlador.
 
-Let’s review the following part of the ActuateLights(bool motionDetected) method responsible for turning the light on or off:
+NOTA: Se podría resolver también con inyección de dependencias, pero vamos a utilizar otra técnica.
+
+Centrémonos en la parte del controlador responsable de encender o apagar la luz
+
 
 ```java
 // If motion was detected in the evening or at night, turn the light on.
@@ -255,205 +258,93 @@ else if (time.Subtract(LastMotionTime) > TimeSpan.FromMinutes(1) || (timeOfDay =
 }
 ```
 
-As we can see, SmartHomeController delegates the responsibility of turning the light on or off to a BackyardLightSwitcher object, which implements a Singleton pattern. What’s wrong with this design?
+La responsabilidad de encender y apagar la luz está delegada en la clase concreta BackyardLightSwitcher. ¿Qué hay de malo con este diseño? Otra vez estamos acoplados a una clase concreta. Pero además, el efecto de encender y/o apagar la luz es una interacción con algún otro sistema. Estamos intentando realizar un **test de interacción** en lugar de un **test de estado**. 
 
-To fully unit test the ActuateLights(bool motionDetected) method, we should perform interaction-based testing in addition to the state-based testing; that is, we should ensure that methods for turning the light on or off are called if, and only if, appropriate conditions are met. Unfortunately, the current design does not allow us to do that: the TurnOn() and TurnOff() methods of BackyardLightSwitcher trigger some state changes in the system, or, in other words, produce side effects. The only way to verify that these methods were called is to check whether their corresponding side effects actually happened or not, which could be painful.
+Queremos asegurarnos que los métodos TurnOn() o TurnOff() se ejecutan únicamente si se cumplen ciertas condiciones. Para averiguarlo, tal como está escrito el código, no nos quedará más remedio que ejecutar los tests y comprobar de alguna forma en el sistema de luces si están encendidas o apagadas. Y eso puede ser bastante complicado.
 
-Indeed, let’s suppose that the motion sensor, backyard lantern, and smart home microcontroller are connected into an Internet of Things network and communicate using some wireless protocol. In this case, a unit test can make an attempt to receive and analyze that network traffic. Or, if the hardware components are connected with a wire, the unit test can check whether the voltage was applied to the appropriate electrical circuit. Or, after all, it can check that the light actually turned on or off using an additional light sensor.
+En vez de eso la técnica que utilizaremos es comprobar únicamente si hemos llamado a la función TurnOn() o a la función TurnOff(). Esto parece a primera vista que es un testeo insuficiente, pero pensemos en los siguiente:
 
-As we can see, unit testing side-effecting methods could be as hard as unit testing non-deterministic ones, and may even be impossible. Any attempt will lead to problems similar to those we’ve already seen. The resulting test will be hard to implement, unreliable, potentially slow, and not-really-unit. And, after all that, the flashing of the light every time we run the test suite will eventually drive us crazy!
+Si en los tests del controlador testeamos que cuando se cumplen las condiciones de movimiento y hora, las luces se encienden y el test falla debido a algún bug interno de la función TurnOn(). ¿De quién es el bug, de nuestro controlador o del BackyardLightSwitcher? ¿El código de qué clase es el que tenemos que revisar y cambiar para arreglar el bug? 
 
-Again, all these testability problems are caused by the bad API, not the developer’s ability to write unit tests. No matter how exactly light control is implemented, the SmartHomeController API suffers from these already-familiar issues:
+Efectivamente: el de BackyardLightSwitcher.
 
-It is tightly coupled to the concrete implementation. The API relies on the hard-coded, concrete instance of BackyardLightSwitcher. It is not possible to reuse the ActuateLights(bool motionDetected) method to switch any light other than the one in the backyard.
+Si el bug no está en el SmartHomeController, **entonces no es responsabilidad de los tests de SmartHomeController verificar si la luz se ha encendido**. La responsabilidad de los tests de SmartHomeController es **verificar que el controlador llama al método TurnOn() cuando se cumplen las condiciones**.
 
-It violates the Single Responsibility Principle. The API has two reasons to change: First, changes to the internal logic (such as choosing to make the light turn on only at night, but not in the evening) and second, if the light-switching mechanism is replaced with another one.
 
-It lies about its dependencies. There is no way for developers to know that SmartHomeController depends on the hard-coded BackyardLightSwitcher component, other than digging into the source code.
+Aunque, como ya se ha comentado, este problema se puede resolver con Inyección de dependencias, vamos a utilizar una técnica alternativa: Las **HIGHER-ORDER FUNCTIONS**
 
-It is hard to understand and maintain. What if the light refuses to turn on when the conditions are right? We could spend a lot of time trying to fix the SmartHomeController to no avail, only to realize that the problem was caused by a bug in the BackyardLightSwitcher (or, even funnier, a burned out lightbulb!).
+Esta técnica solamente funciona en lenguajes orientados a objetos que soporten las llamadas *first-class functions*. Es decir, necesitamos poder pasar funciones como argumentos de entrada de otras funciones.
 
-The solution of both testability and low-quality API issues is, not surprisingly, to break tightly coupled components from each other. As with the previous example, employing Dependency Injection would solve these issues; just add an ILightSwitcher dependency to the SmartHomeController, delegate it the responsibility of flipping the light switch, and pass a fake, test-only ILightSwitcher implementation that will record whether the appropriate methods were called under the right conditions. However, instead of using Dependency Injection again, let’s review an interesting alternative approach for decoupling the responsibilities.
 
-FIXING THE API: HIGHER-ORDER FUNCTIONS
-This approach is an option in any object-oriented language that supports first-class functions. Let’s take advantage of C#’s functional features and make the ActuateLights(bool motionDetected) method accept two more arguments: a pair of Action delegates, pointing to methods that should be called to turn the light on and off. This solution will convert the method into a higher-order function:
 
 ```java
 public void ActuateLights(bool motionDetected, Action turnOn, Action turnOff)
 {
-    DateTime time = _dateTimeProvider.GetDateTime();
-    
-    // Update the time of last motion.
-    if (motionDetected)
-    {
-        LastMotionTime = time;
-    }
+    LocalDateTime time = this.localDateTimeProvider.GetDateTime();
     
     // If motion was detected in the evening or at night, turn the light on.
     string timeOfDay = GetTimeOfDay(time);
     if (motionDetected && (timeOfDay == "Evening" || timeOfDay == "Night"))
     {
-        turnOn(); // Invoking a delegate: no tight coupling anymore
+        turnOn(); // Invocamos la función que nos han pasado por el constructor
     }
     // If no motion is detected for one minute, or if it is morning or day, turn the light off.
     else if (time.Subtract(LastMotionTime) > TimeSpan.FromMinutes(1) || (timeOfDay == "Morning" || timeOfDay == "Noon"))
     {
-        turnOff(); // Invoking a delegate: no tight coupling anymore
+        turnOff(); // Invocamos la función que nos han pasado por el constructor
     }
 }
 ```
 
-This is a more functional-flavored solution than the classic object-oriented Dependency Injection approach we’ve seen before; however, it lets us achieve the same result with less code, and more expressiveness, than Dependency Injection. It is no longer necessary to implement a class that conforms to an interface in order to supply SmartHomeController with the required functionality; instead, we can just pass a function definition. Higher-order functions can be thought of as another way of implementing Inversion of Control.
+Con esto, realizar un test unitario de interacción es muy fácil con *fakes* de las funciones
 
 Now, to perform an interaction-based unit test of the resulting method, we can pass easily verifiable fake actions into it:
 
 ```java
+@Test
 public void ActuateLights_MotionDetectedAtNight_TurnsOnTheLight()
 {
     // Arrange: create a pair of actions that change boolean variable instead of really turning the light on or off.
-    bool turnedOn  = false;
-    Action turnOn  = () => turnedOn = true;
-    Action turnOff = () => turnedOn = false;
+    bool turnedOnCalled  = false;
+    Action turnOn  = () => turnedOnCalled = true;
+    Action turnOff = () => {};
     var controller = new SmartHomeController(new FakeDateTimeProvider(new DateTime(2015, 12, 31, 23, 59, 59)));
 
     // Act
     controller.ActuateLights(true, turnOn, turnOff);
 
     // Assert
-    Assert.IsTrue(turnedOn);
+    Assert.IsTrue(turnedOnCalled);
 }
 ```
 
-Finally, we have made the SmartHomeController API fully testable, and we are able to perform both state-based and interaction-based unit tests for it. Again, notice that in addition to improved testability, introducing a seam between the decision-making and action code helped to solve the tight coupling problem, and led to a cleaner, reusable API.
 
-Now, in order to achieve full unit test coverage, we can simply implement a bunch of similar-looking tests to validate all possible cases — not a big deal since unit tests are now quite easy to implement.
+Algunas otras malas prácticas
+-----------------------------
 
-Impurity and Testability
-Uncontrolled non-determinism and side effects are similar in their destructive effects on the codebase. When used carelessly, they lead to deceptive, hard to understand and maintain, tightly coupled, non-reusable, and untestable code.
 
-On the other hand, methods that are both deterministic and side-effect-free are much easier to test, reason about, and reuse to build larger programs. In terms of functional programming, such methods are called pure functions. We’ll rarely have a problem unit testing a pure function; all we have to do is to pass some arguments and check the result for correctness. What really makes code untestable is hard-coded, impure factors that cannot be replaced, overridden, or abstracted away in some other way.
+Algunas señales de código que hará difícil la programación de los tests.
 
-Impurity is toxic: if method Foo() depends on non-deterministic or side-effecting method Bar(), then Foo() becomes non-deterministic or side-effecting as well. Eventually, we may end up poisoning the entire codebase. Multiply all these problems by the size of a complex real-life application, and we’ll find ourselves encumbered with a hard to maintain codebase full of smells, anti-patterns, secret dependencies, and all sorts of ugly and unpleasant things.
 
-unit testing example: illustration
-
-However, impurity is inevitable; any real-life application must, at some point, read and manipulate state by interacting with the environment, databases, configuration files, web services, or other external systems. So instead of aiming to eliminate impurity altogether, it’s a good idea to limit these factors, avoid letting them poison your codebase, and break hard-coded dependencies as much as possible, in order to be able to analyze and unit test things independently.
-
-Common Warning Signs of Hard to Test Code
------------------------------------------
-
-Trouble writing tests? The problem's not in your test suite. It's in your code.
-
-Finally, let’s review some common warning signs indicating that our code might be difficult to test.
-
-Static Properties and Fields
-Static properties and fields or, simply put, global state, can complicate code comprehension and testability, by hiding the information required for a method to get its job done, by introducing non-determinism, or by promoting extensive usage of side effects. Functions that read or modify mutable global state are inherently impure.
-
-For example, it is hard to reason about the following code, which depends on a globally accessible property:
-
-if (!SmartHomeSettings.CostSavingEnabled) { _swimmingPoolController.HeatWater(); }
-What if the HeatWater() method doesn’t get called when we are sure it should have been? Since any part of the application might have changed the CostSavingEnabled value, we must find and analyze all the places modifying that value in order to find out what’s wrong. Also, as we’ve already seen, it is not possible to set some static properties for testing purposes (e.g., DateTime.Now, or Environment.MachineName; they are read-only, but still non-deterministic).
-
-On the other hand, immutable and deterministic global state is totally OK. In fact, there’s a more familiar name for this — a constant. Constant values like Math.PI do not introduce any non-determinism, and, since their values cannot be changed, do not allow any side effects:
-
-double Circumference(double radius) { return 2 * Math.PI * radius; } // Still a pure function!
-Singletons
-Essentially, the Singleton pattern is just another form of the global state. Singletons promote obscure APIs that lie about real dependencies and introduce unnecessarily tight coupling between components. They also violate the Single Responsibility Principle because, in addition to their primary duties, they control their own initialization and lifecycle.
-
-Singletons can easily make unit tests order-dependent because they carry state around for the lifetime of the whole application or unit test suite. Have a look at the following example:
+- Propiedades y campos estáticos, variables globales, etc (que no sean de sólo lectura)
 
 ```java
-User GetUser(int userId)
-{
-    User user;
-    if (UserCache.Instance.ContainsKey(userId))
-    {
-        user = UserCache.Instance[userId];
-    }
-    else
-    {
-        user = _userService.LoadUser(userId);
-        UserCache.Instance[userId] = user;
-    }
-    return user;
-}
+if (!SmartHomeSettings.CostSavingEnabled) { swimmingPoolController.HeatWater(); }
 ```
 
-In the example above, if a test for the cache-hit scenario runs first, it will add a new user to the cache, so a subsequent test of the cache-miss scenario may fail because it assumes that the cache is empty. To overcome this, we’ll have to write additional teardown code to clean the UserCache after each unit test run.
-
-Using Singletons is a bad practice that can (and should) be avoided in most cases; however, it is important to distinguish between Singleton as a design pattern, and a single instance of an object. In the latter case, the responsibility of creating and maintaining a single instance lies with the application itself. Typically, this is handed with a factory or Dependency Injection container, which creates a single instance somewhere near the “top” of the application (i.e., closer to an application entry point) and then passes it to every object that needs it. This approach is absolutely correct, from both testability and API quality perspectives.
-
-El operador new
----------------
-Newing up an instance of an object in order to get some job done introduces the same problem as the Singleton anti-pattern: unclear APIs with hidden dependencies, tight coupling, and poor testability.
-
-For example, in order to test whether the following loop stops when a 404 status code is returned, the developer should set up a test web server:
+Sin embargo, si estas propiedades son de solo lectura, entonces no hay problema
 
 ```java
-using (var client = new HttpClient())
-{
-    HttpResponseMessage response;
-    do
-    {
-        response = await client.GetAsync(uri);
-        // Process the response and update the uri...
-    } while (response.StatusCode != HttpStatusCode.NotFound);
-}
+double Circumference(double radius) { return 2 * Math.PI * radius; }
 ```
 
-However, sometimes new is absolutely harmless: for example, it is OK to create simple entity objects:
 
-var person = new Person("John", "Doe", new DateTime(1970, 12, 31));
-It is also OK to create a small, temporary object that does not produce any side effects, except to modify their own state, and then return the result based on that state. In the following example, we don’t care whether Stack methods were called or not — we just check if the end result is correct:
+- El operador new
 
-```java
-string ReverseString(string input)
-{
-    // No need to do interaction-based testing and check that Stack methods were called or not;
-    // The unit test just needs to ensure that the return value is correct (state-based testing).
-    var stack = new Stack<char>();
-    foreach(var s in input)
-    {
-        stack.Push(s);
-    }
-    string result = string.Empty;
-    while(stack.Count != 0)
-    {
-        result += stack.Pop();
-    }
-    return result;
-}
-```
 
-Static Methods
---------------
+Hacer un new de una clase para ejecutar un método de la misma que haga algún trabajo es un anti-patrón. 
 
-Static methods are another potential source of non-deterministic or side-effecting behavior. They can easily introduce tight coupling and make our code untestable.
+Ya hemos visto cómo utilizar invesión de dependencias para quitarnos este problema.
 
-For example, to verify the behavior of the following method, unit tests must manipulate environment variables and read the console output stream to ensure that the appropriate data was printed:
 
-```java
-void CheckPathEnvironmentVariable()
-{
-
-    if (Environment.GetEnvironmentVariable("PATH") != null)
-    {
-        Console.WriteLine("PATH environment variable exists.");
-    }
-
-    else
-    {
-       Console.WriteLine("PATH environment variable is not defined.");
-    }
-
-}
-```
-
-However, pure static functions are OK: any combination of them will still be a pure function. For example:
-
-double Hypotenuse(double side1, double side2) { return Math.Sqrt(Math.Pow(side1, 2) + Math.Pow(side2, 2)); }
-Benefits of Unit Testing
-Obviously, writing testable code requires some discipline, concentration, and extra effort. But software development is a complex mental activity anyway, and we should always be careful, and avoid recklessly throwing together new code from the top of our heads.
-
-As a reward for this act of proper software quality assurance, we’ll end up with clean, easy-to-maintain, loosely coupled, and reusable APIs, that won’t damage developers’ brains when they try to understand it. After all, the ultimate advantage of testable code is not only the testability itself, but the ability to easily understand, maintain and extend that code as well.
-
+**Si tenemos problemas para escribir un test unitario, el problema está en el código no en los test.**

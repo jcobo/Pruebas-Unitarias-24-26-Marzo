@@ -51,8 +51,8 @@ Testear el estado implica comprobar que una función nos devuelve el resultado e
 
 Este tipo de testeo se puede realizar tanto con la técnica de caja negra como con la técnica de caja blanca.
 
-Tests de implementación
------------------------
+Tests de interacción
+--------------------
 
 En este tipo de tests se pretende verificar que el elemento bajo test invoca (o no invoca) algún método concreto con unos argumentos concretos.
 

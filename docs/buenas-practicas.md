@@ -5,11 +5,11 @@ Sobre el código fuente
 ----------------------
 
 - Principios solid
-  - Single Responsability Principle
-  - Open-Closed Principle
-  - Liskov Substitution Principle
-  - Interface Segregation Principle
-  - Dependecy Inversion Principle
+    - Single Responsability Principle
+    - Open-Closed Principle
+    - Liskov Substitution Principle
+    - Interface Segregation Principle
+    - Dependecy Inversion Principle
   
 El primero y el último de los principios SOLID son esenciales para generar código que sea fácil de testear.
 
@@ -31,15 +31,13 @@ Sobre los tests
 
 - Los nombres de los tests deben ser lo más descriptivos posible
 
-- Keep the number of assertions per unit test to a minimum. A single unit test is testing one thing. Multiple assertions in a single test are fine, but if it’s logical to split the assertions into separate tests, then it’s best to do so.
+- Mantén el número de asserts al mínimo en cada test. Un test unitario debe testear una única cosa. Tener más de un assert en un test es válido, pero si se pueden separar de forma lógica, es mejor hacerlo.
 
-- Avoid assertion-less tests. These are tests that don’t contain any assertions (or verifications in the case of implementation tests), and are used to test that something works without throwing an exception. I like my unit tests to always check that something worked.
+- Evita test sin ningún assert. A veces se usan para testear que no ocurre ninguna excepción. Pero normalmente lo lógico es testear que ocurran cosas, no que no ocurran.
 
-- Don’t repeat assertions that have been covered in existing tests. If a unit test asserts that a result is not null, or that a collection has exactly one item, then subsequent unit tests don’t need to repeat such assertions before asserting additional state.
+- No pongan asserts para comprobar funcionalidades que ya estén testeadas en otros tests.
 
-- Assertions should be situated in the unit tests proper, rather than pulled out into helper methods. If checking the state is a bit complicated and common across many tests, it’s good to write a helper method to check the state. It’s easy to then put the assertions within that helper method, though I find unit tests more readable if they contain the assertions which could check a boolean returned by the helper method.
-
-- The code for arrange, act and assert should be on their own lines, ideally with a new line between each. If you’re asserting that a method returns true, it can be tempting to perform that method call right inside the assert statement. I find unit tests clearer when these are kept separate.
+- Separa claramente los códigos de cada parte del test (arrange, act y assert). A veces basta con una línea de separación, otras veces necesitarán algo más informativo. A veces se pone en una sola línea el act y el assert. Normalmente resulta más legible hacerlo en líneas separadas.
 
 - Testea únicamente el elemento bajo prueba
 
@@ -109,6 +107,9 @@ public class TestAdder {
 }
 ```
 
-En este caso, nos hubiera bastado un único test, que compruebe que nuestro método está efectivamente utilizando el operador '+'. El resto de métodos están testeando si el operador '+' funciona correctamete. Pero ese operador no es nuestro, y además está sobradamente testeado en las librerías de java.
+En este caso, nos hubiera bastado un único test, que compruebe que nuestro método está efectivamente utilizando el operador '+' con los dos argumentos de entrada. El resto de métodos están testeando si el operador '+' funciona correctamete. Pero ese operador no es nuestro, y además está sobradamente testeado en las librerías de java.
+
+Lo mismo aplica si un método utilizar una librería para escribir/leer de un fichero, enviar un correo, o acceder a la base de datos. En los tests unitarios se comprueba si nuestros métodos hacen las llamadas correspondientes a las librerías, con los argumentos correctos. No se testea si la escritura en el fichero ha ido bien o si el correo se ha llegado a enviar.
+
 
 
