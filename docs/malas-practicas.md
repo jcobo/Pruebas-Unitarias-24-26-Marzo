@@ -51,7 +51,7 @@ public void GetTimeOfDay_At6AM_ReturnsMorning()
         string timeOfDay = GetTimeOfDay();
 
         // Assert
-        Assert.AreEqual("Morning", timeOfDay);
+        AssertEqual("Morning", timeOfDay);
     }
     finally
     {
@@ -113,7 +113,7 @@ public void GetTimeOfDay_For6AM_ReturnsMorning()
     string timeOfDay = GetTimeOfDay(new LocalDateTime(2015, 12, 31, 06, 00, 00));
 
     // Assert
-    Assert.AreEqual("Morning", timeOfDay);
+    AssertEqual("Morning", timeOfDay);
 }
 ```
 
@@ -146,12 +146,12 @@ public class SmartHomeController
         string timeOfDay = GetTimeOfDay(time);
         if (motionDetected && (timeOfDay == "Evening" || timeOfDay == "Night"))
         {
-            BackyardLightSwitcher.Instance.TurnOn();
+            BackyardLightSwitcher.TurnOn();
         }
         // If no motion is detected for one minute, or if it is morning or day, turn the light off.
         else if (time.Subtract(LastMotionTime) > TimeSpan.FromMinutes(1) || (timeOfDay == "Morning" || timeOfDay == "Noon"))
         {
-            BackyardLightSwitcher.Instance.TurnOff();
+            BackyardLightSwitcher.TurnOff();
         }
     }
 }
@@ -208,27 +208,29 @@ Un Fake de ILocalDateTimeProvider, podría ser así:
 ```java
 public class FakeLocalDateTimeProvider : ILocalDateTimeProvider
 {
-    public LocalDateTime ReturnValue { get; set; }
-
-    public LocalDateTime GetDateTime() { return ReturnValue; }
-
-    public FakeDateTimeProvider(DateTime returnValue) { ReturnValue = returnValue; }
+    private localDateTime; 
+    
+    public FakeDateTimeProvider(LocalDateTime time) { this.localDateTime = time }
+    // public FakeDateTimeProvider() { this.localDateTime = new LocalDateTime(2015, 12, 31, 23, 59, 59) } 
+    
+    public LocalDateTime getLocalDateTime() { return this.localDateTime; }
 }
 ```
 
 Podemos testear, por ejemplo, si el método ActuateLights se apunta bien el valor en LastMotionTime.
 
 ```java
+@Test
 void ActuateLights_MotionDetected_SavesTimeOfMotion()
 {
     // Arrange
-    var controller = new SmartHomeController(new FakeDateTimeProvider(new LocalDateTime(2015, 12, 31, 23, 59, 59)));
+    SmartHomeController controller = new SmartHomeController(new FakeDateTimeProvider(new LocalDateTime(2015, 12, 31, 23, 59, 59)));
 
     // Act
     controller.ActuateLights(true);
 
     // Assert
-    Assert.AreEqual(new DateTime(2015, 12, 31, 23, 59, 59), controller.LastMotionTime);
+    AssertEqual(new DateTime(2015, 12, 31, 23, 59, 59), controller.LastMotionTime);
 }
 ```
 
@@ -249,12 +251,12 @@ Centrémonos en la parte del controlador responsable de encender o apagar la luz
 // If motion was detected in the evening or at night, turn the light on.
 if (motionDetected && (timeOfDay == "Evening" || timeOfDay == "Night"))
 {
-    BackyardLightSwitcher.Instance.TurnOn();
+    BackyardLightSwitcher.TurnOn();
 }
 // If no motion was detected for one minute, or if it is morning or day, turn the light off.
 else if (time.Subtract(LastMotionTime) > TimeSpan.FromMinutes(1) || (timeOfDay == "Morning" || timeOfDay == "Noon"))
 {
-    BackyardLightSwitcher.Instance.TurnOff();
+    BackyardLightSwitcher.TurnOff();
 }
 ```
 
@@ -296,9 +298,8 @@ public void ActuateLights(bool motionDetected, Action turnOn, Action turnOff)
 }
 ```
 
-Con esto, realizar un test unitario de interacción es muy fácil con *fakes* de las funciones
+Con esto, realizar un test unitario de interacción es muy fácil con *fakes* de las funciones:
 
-Now, to perform an interaction-based unit test of the resulting method, we can pass easily verifiable fake actions into it:
 
 ```java
 @Test
@@ -314,7 +315,33 @@ public void ActuateLights_MotionDetectedAtNight_TurnsOnTheLight()
     controller.ActuateLights(true, turnOn, turnOff);
 
     // Assert
-    Assert.IsTrue(turnedOnCalled);
+    AssertTrue(turnedOnCalled);
+}
+```
+
+Con inyección de dependencias podría ser algo así:
+
+```java
+
+class FakeBackyardLightSwitcher {
+	public static bool turnedOnCalled  = false;
+	public static turnOn() {
+		this.turnedOnCalled = true;
+	}
+	public static turnOn() {}
+}
+
+@Test
+public void ActuateLights_MotionDetectedAtNight_TurnsOnTheLight()
+{
+    FakeDateTimeProvider fakeDateTimeProvider = new FakeDateTimeProvider(new DateTime(2015, 12, 31, 23, 59, 59));
+    SmartHomeController controller = new SmartHomeController(fakeDateTimeProvider, FakeBackyardLightSwitcher.class);
+
+    // Act
+    controller.ActuateLights(true);
+
+    // Assert
+    AssertTrue(FakeBackyardLightSwitcher.turnedOnCalled);
 }
 ```
 

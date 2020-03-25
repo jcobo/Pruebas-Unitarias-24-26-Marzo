@@ -1,5 +1,5 @@
 ¿Habéis escrito ya el test? Os aconsejo encarecidamente que lo hagáis, o al 
-menos lo intentéis, antes de seguir con el vídeo.
+menos lo intentéis, antes de seguir con la explicación.
 
 Enfrentarse a la escritura del primer test es una experiencia muy curiosa que nos encontramos
 al aventurarnos en el mundo del TDD. No tenemos nada, ni clases, ni métodos, 

@@ -111,5 +111,45 @@ En este caso, nos hubiera bastado un único test, que compruebe que nuestro mét
 
 Lo mismo aplica si un método utilizar una librería para escribir/leer de un fichero, enviar un correo, o acceder a la base de datos. En los tests unitarios se comprueba si nuestros métodos hacen las llamadas correspondientes a las librerías, con los argumentos correctos. No se testea si la escritura en el fichero ha ido bien o si el correo se ha llegado a enviar.
 
+Otro ejemplo: Si queremos testear el siguiente trozo de código que usa Hibernate para hacer un insert:
+
+```java
+Session session = HibernateUtil.getSessionFactory().openSession();
+session.beginTransaction();
+        
+EmployeeEntity emp = new EmployeeEntity();
+emp.setEmail("demo-user@mail.com");
+emp.setFirstName("demo");
+emp.setLastName("user");
+ 
+session.save(emp);
+session.getTransaction().commit();
+HibernateUtil.shutdown();
+```
+
+Lo que hay que testear no es si el insert se ha hecho o no en la base de datos. Eso es muy costoso de testear. Y no es unitario. Si acaso es un test de integración. Lo que hay que testear es que hemos llamado al método save() con el objeto correcto como argumento de entrada.
+
+```java
+stmt = con.prepareStatement("INSERT INTO libros VALUES (?,?,?,?,?)");
+String sISBN = "84-9815-212-7";
+String sTitulo = "Yo, Claudio";
+String sDescripcion= "Supuesta autobiografía de Claudio...";
+String sCategoria = "novela histórica";
+int idAutor = 3;
+   
+stmt.setString(1,sISBN);
+stmt.setInt(2,idAutor);
+stmt.setString(3,sTitulo);
+stmt.setString(4,sDescripcion);
+stmt.setString(5,sCategoria);
+
+stmt.executeUpdate();
+```
+
+O con consultas SQL "a mano". Habría que testear que hemos llamado a cada uno de los métodos prepareStatement, setString, setInt, executeUpdate... las veces necesarias y con los argumentos necesarios.
+
+
+
+
 
 
