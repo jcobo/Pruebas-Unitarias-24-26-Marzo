@@ -16,6 +16,7 @@ Cuesta muchísimo trabajo encontrar en la literatura y en la bibliografía las d
 
 - Aprender bien la técnica es todo un reto.
 - Muchos tests pueden ser difíciles de escribir, sobretodo los tests no unitarios.
+- A veces sucede, por diversos motivos, que no todos los desarrolladores del equipo usan TDD. El proyecto fracasará con toda seguridad a menos que todo el equipo al completo esté aplicando TDD.
 - Casi imposible de aplicar a código "legacy".
 - TDD incrementa enormemente la confianza, pero puede crear una falsa sensación de seguridad. 
     - Al igual que introducimos bugs al programar el código, es posible introducir bugs al programar los tests.

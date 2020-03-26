@@ -53,5 +53,6 @@ Pruebas Unitarias
         - [Cobertura de código](./tdd/14_Cobertura_codigo.md)
         - [Resto de tests](./tdd/15_Resto_de_tests.md)
         - [Test Driven Bug Fixing](./tdd/16_Test_Driven_Bug_Fixing_v2.md)
+    - [Pros y contras](./tdd_ventajas_desventajas.md)
 
 - [Ejercicios](./ejercicios.md)
