@@ -9,27 +9,24 @@ import org.junit.jupiter.api.BeforeEach;
 
 class HelloWorldTest {
 
-	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
-	}
-
-	@AfterAll
-	static void tearDownAfterClass() throws Exception {
-	}
-
-	@BeforeEach
-	void setUp() throws Exception {
-	}
-
-	@AfterEach
-	void tearDown() throws Exception {
-	}
-
 	@Test
-	void testSumPostive() {
+	void testSumPositive() {
+		
 		HelloWorld myclass = new HelloWorld();
+		
 		int output = myclass.sum(7, 15);
-		assertEquals(22, output, "Sum positive values as expected");
+		
+		assertEquals(22, output, "Suma de 7 y de 15 debe dar 22");
+	}
+	
+	@Test
+	void testSumNegativos() {
+		
+		HelloWorld myclass = new HelloWorld();
+		
+		int output = myclass.sum(-7, -5);
+		
+		assertEquals(-12, output);
 	}
 
 }

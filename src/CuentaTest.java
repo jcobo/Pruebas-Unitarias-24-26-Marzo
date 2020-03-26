@@ -4,7 +4,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
 
 class CuentaTest {
 
@@ -196,7 +198,7 @@ class CuentaTest {
 	@Test
     public void testTransferencia()
     {
-        //Set up
+        //Set up (Arrange)
         Cuenta cuenta1 = new Cuenta();
         cuenta1.ingreso(500);
         
