@@ -101,9 +101,11 @@ Especificaciones:
 - El método debe aceptar un string y convertirlo en un número
 - Los strings válidos contienen únicamente caracteres numéricos, espacios y el signo menos. Cualquier otro caracter en el string lo hace inválido y debe devolver una excepción
 - No se admiten números decimales
-    - SI: “500”, “-10”, “32767”, “ -3”, "457   ", "   -25   "
-    - NO: “2 3”, “32768”, “A3”, “2.3", "57U56"
 
+```
+SI: “500”, “-10”, “32767”, “ -3”, "457   ", "   -25   "
+NO: “2 3”, “32768”, “A3”, “2.3", "57U56"
+```
 
 ## Fridge
 
