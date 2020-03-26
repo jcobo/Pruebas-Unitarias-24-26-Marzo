@@ -50,7 +50,6 @@ Pruebas Unitarias
         - [Introduciendo un bug](./tdd/11_Introduciendo_bug.md)
         - [Test que cambia un tipo de dato](./tdd/12_Test_que_no_falla.md)
         - [Refactorización](./tdd/13_Refactorizacion.md)
-        - [Cobertura de código](./tdd/14_Cobertura_codigo.md)
         - [Resto de tests](./tdd/15_Resto_de_tests.md)
         - [Test Driven Bug Fixing](./tdd/16_Test_Driven_Bug_Fixing_v2.md)
     - [Pros y contras](./tdd_ventajas_desventajas.md)
