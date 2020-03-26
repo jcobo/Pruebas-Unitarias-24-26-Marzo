@@ -83,37 +83,35 @@ Si la función ya estuviera programada... ¿cuántos tests serían necesarios?
 Testear de forma unitaria la clase ShoppingCart
 
 Las especificaciones de esta clase son las siguientes:
-
+
 - Cuando se crea un carrito, el carrito tiene 0 productos.
-- Cuando se vacía el carrito, el carrito tiene 0 productos.
-- Cuadno se añade un producto nuevo, el número de items se debe incrementar en 1.
-- Cuando se añade un producto nuevo, el *balance* debe ser la suma del coste de este nuevo producto más el balance anterior.
-- Cuando se elimina un producto, se debe decrementar el número de productos en 1.
+- Cuando se vacía el carrito, el carrito tiene 0 productos.
+- Cuando se añade un producto nuevo, el número de items se debe incrementar en 1.
+- Cuando se añade un producto nuevo, el *balance* debe ser la suma del coste de este nuevo producto más el balance anterior.
+- Cuando se elimina un producto, se debe decrementar el número de productos en 1.
 - Cuando se elimina un producto, el balance debe actualizarse correctamente.
-- Si se elimina un producto que NO está en el carrito, se debe lanzar una excepción ProductNotFoundException
+- Si se elimina un producto que NO está en el carrito, se debe lanzar una excepción ProductNotFoundException
 
 ## StringToInt Converter
 
-Write a class with a static method that converts a string
-into an integer value
- Specifications
- The method must accept a string and convert it into an integer
- Well formed strings does not contain characters different from
-numbers, trailing spaces and minus
- The represented number must be in the range [-32768, 32767]
- No real number are allowed
- OK: “ -3”, “500”, “-10”, “32767”
- NO: “2 3”, “32768”, “A3”, “2.3
+Escribe una clase con un método estático que convierta un string en un valor numérico
 
+Especificaciones: 
+
+- El método debe aceptar un string y convertirlo en un número
+- Los strings válidos contienen únicamente caracteres numéricos, espacios y el signo menos. Cualquier otro caracter en el string lo hace inválido y debe devolver una excepción
+- No se admiten números decimales
+
+```
+SI: “500”, “-10”, “32767”, “ -3”, "457   ", "   -25   "
+NO: “2 3”, “32768”, “A3”, “2.3", "57U56"
+```
 
 ## Fridge
 
-/**
- * Practical Unit Testing with JUnit and Mockito - source code for exercises.
- * Visit http://practicalunittesting.com for more information.
- *
- * @author Tomek Kaczanowski
- */
+Cogido de: http://practicalunittesting.com
+
+```java
 public class Fridge {
 
 	private Collection<String> food = new HashSet<String>();
@@ -133,3 +131,4 @@ public class Fridge {
 		}
 	}
 }
+```
