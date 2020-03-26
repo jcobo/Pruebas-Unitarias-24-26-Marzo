@@ -55,4 +55,6 @@ Pruebas Unitarias
         - [Test Driven Bug Fixing](./tdd/16_Test_Driven_Bug_Fixing_v2.md)
     - [Pros y contras](./tdd_ventajas_desventajas.md)
 
+- [Normativa](./normativa.md)
+
 - [Ejercicios](./ejercicios.md)
